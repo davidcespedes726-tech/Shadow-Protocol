@@ -1,6 +1,6 @@
 task.spawn(function()
     -- =================================================
-    -- CONFIGURACIÓN DE KEYAUTH
+    -- 1. CONFIGURACIÓN DE KEYAUTH
     -- =================================================
     local KeyAuthApp = {
         name = "Shadow Protocol",
@@ -16,7 +16,7 @@ task.spawn(function()
     end)
 
     -- =================================================
-    -- SERVICIOS Y GUI
+    -- 2. SERVICIOS Y CREACIÓN DE INTERFAZ
     -- =================================================
     local CoreGui = cloneref(game:GetService("CoreGui"))
     local Players = cloneref(game:GetService("Players"))
@@ -101,7 +101,7 @@ task.spawn(function()
     StatusLabel.Parent = MainKeyFrame
 
     -- =================================================
-    -- FUNCIÓN PRINCIPAL
+    -- 3. FUNCIÓN DE CARGA DEL MENÚ PRINCIPAL (FLUENT)
     -- =================================================
     local function LoadMainScript()
         print("[Shadow Protocol] Key validada exitosamente. Cargando Fluent Menu...")
@@ -130,39 +130,48 @@ task.spawn(function()
     end
 
     -- =================================================
-    -- EVENTO CONECTADO DE FORMA SEGURA
+    -- 4. CONEXIÓN DEL BOTÓN CON CONTROL DE ERRORES
     -- =================================================
-    if VerifyButton then
-        VerifyButton.MouseButton1Click:Connect(function()
-            local inputKey = string.gsub(KeyInputText.Text, "%s+", "")
-            
-            if inputKey == "" then
-                StatusLabel.Text = "Por favor ingresa una llave"
-                StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
-                return
-            end
+    task.spawn(function()
+        -- Esperamos brevemente a que el botón esté completamente listo en memoria
+        local btn = MainKeyFrame:WaitForChild("VerifyButton", 5)
+        local txtBox = MainKeyFrame:WaitForChild("KeyInputText", 5)
+        local lblStatus = MainKeyFrame:WaitForChild("StatusLabel", 5)
 
-            StatusLabel.Text = "Verificando Key y HWID..."
-            StatusLabel.TextColor3 = Color3.fromRGB(255, 255, 100)
-
-            task.spawn(function()
-                local success, result = pcall(function()
-                    return KeyAuth:license(inputKey)
-                end)
-
-                if KeyAuth.authenticated or (success and result == true) then
-                    StatusLabel.Text = "¡Acceso concedido!"
-                    StatusLabel.TextColor3 = Color3.fromRGB(50, 255, 50)
-                    task.wait(1)
-                    
-                    KeyGui:Destroy()
-                    LoadMainScript()
-                else
-                    local errMsg = type(result) == "string" and result or "Key inválida o HWID no coincide"
-                    StatusLabel.Text = errMsg
-                    StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
+        if btn and txtBox and lblStatus then
+            btn.MouseButton1Click:Connect(function()
+                local inputKey = string.gsub(txtBox.Text, "%s+", "")
+                
+                if inputKey == "" then
+                    lblStatus.Text = "Por favor ingresa una llave"
+                    lblStatus.TextColor3 = Color3.fromRGB(255, 50, 50)
+                    return
                 end
+
+                lblStatus.Text = "Verificando Key y HWID..."
+                lblStatus.TextColor3 = Color3.fromRGB(255, 255, 100)
+
+                task.spawn(function()
+                    local success, result = pcall(function()
+                        return KeyAuth:license(inputKey)
+                    end)
+
+                    if KeyAuth.authenticated or (success and result == true) then
+                        lblStatus.Text = "¡Acceso concedido!"
+                        lblStatus.TextColor3 = Color3.fromRGB(50, 255, 50)
+                        task.wait(1)
+                        
+                        KeyGui:Destroy()
+                        LoadMainScript()
+                    else
+                        local errMsg = type(result) == "string" and result or "Key inválida o HWID no coincide"
+                        lblStatus.Text = errMsg
+                        lblStatus.TextColor3 = Color3.fromRGB(255, 50, 50)
+                    end
+                end)
             end)
-        end)
-    end
+        else
+            warn("[Shadow Protocol] Error critico: No se pudieron instanciar los componentes de la GUI.")
+        end
+    end)
 end)
