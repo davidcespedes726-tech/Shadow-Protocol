@@ -78,7 +78,6 @@ task.spawn(function()
     StatusLabel.Parent = MainKeyFrame
 
     local function LoadMainScript()
-        print("[Shadow Protocol] Cargando menú principal...")
         local success, Fluent = pcall(function()
             return loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
         end)
@@ -104,9 +103,6 @@ task.spawn(function()
             })
 
             Window:SelectTab(1)
-        else
-            StatusLabel.Text = "Error al cargar Fluent"
-            StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
         end
     end
 
@@ -119,22 +115,12 @@ task.spawn(function()
             return
         end
 
-        StatusLabel.Text = "Verificando..."
-        StatusLabel.TextColor3 = Color3.fromRGB(255, 255, 100)
-
-        task.spawn(function()
-            task.wait(0.5)
-            -- Bypass local seguro para evitar bloqueos del entorno de red de Roblox
-            if string.len(inputKey) > 3 then
-                StatusLabel.Text = "¡Acceso concedido!"
-                StatusLabel.TextColor3 = Color3.fromRGB(50, 255, 50)
-                task.wait(0.8)
-                KeyGui:Destroy()
-                LoadMainScript()
-            else
-                StatusLabel.Text = "Key inválida"
-                StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
-            end
+        StatusLabel.Text = "¡Acceso concedido!"
+        StatusLabel.TextColor3 = Color3.fromRGB(50, 255, 50)
+        
+        task.delay(0.5, function()
+            KeyGui:Destroy()
+            LoadMainScript()
         end)
     end)
 end)
