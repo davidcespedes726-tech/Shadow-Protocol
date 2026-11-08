@@ -3,16 +3,25 @@ task.spawn(function()
     local Players = cloneref(game:GetService("Players"))
     local LocalPlayer = Players.LocalPlayer
 
+    -- Eliminar cualquier interfaz previa en pantalla para evitar duplicados
+    for _, gui in ipairs(CoreGui:GetChildren()) do
+        if gui.Name == "ShadowProtocolKeySystem" or gui.Name == "ShadowProtocolMain" then
+            gui:Destroy()
+        end
+    end
+    for _, gui in ipairs(LocalPlayer.PlayerGui:GetChildren()) do
+        if gui.Name == "ShadowProtocolKeySystem" or gui.Name == "ShadowProtocolMain" then
+            gui:Destroy()
+        end
+    end
+
     local KeyGui = Instance.new("ScreenGui")
     KeyGui.Name = "ShadowProtocolKeySystem"
     KeyGui.ResetOnSpawn = false
     KeyGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-
-    pcall(function() KeyGui.Parent = CoreGui end)
-    if not KeyGui.Parent then KeyGui.Parent = LocalPlayer:WaitForChild("PlayerGui") end
+    KeyGui.Parent = CoreGui
 
     local MainKeyFrame = Instance.new("Frame")
-    MainKeyFrame.Name = "MainKeyFrame"
     MainKeyFrame.Size = UDim2.new(0, 400, 0, 220)
     MainKeyFrame.Position = UDim2.new(0.5, -200, 0.5, -110)
     MainKeyFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
@@ -28,14 +37,13 @@ task.spawn(function()
     local TitleLabel = Instance.new("TextLabel")
     TitleLabel.Size = UDim2.new(1, 0, 0, 40)
     TitleLabel.BackgroundTransparency = 1
-    TitleLabel.Text = "SHADOW PROTOCOL - KEYAUTH SYSTEM"
+    TitleLabel.Text = "SHADOW PROTOCOL - NUEVO PANEL"
     TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     TitleLabel.TextSize = 16
     TitleLabel.Font = Enum.Font.GothamBold
     TitleLabel.Parent = MainKeyFrame
 
     local KeyInputText = Instance.new("TextBox")
-    KeyInputText.Name = "KeyInputText"
     KeyInputText.Size = UDim2.new(0.85, 0, 0, 40)
     KeyInputText.Position = UDim2.new(0.075, 0, 0.28, 0)
     KeyInputText.BackgroundColor3 = Color3.fromRGB(30, 30, 38)
@@ -52,7 +60,6 @@ task.spawn(function()
     InputCorner.Parent = KeyInputText
 
     local VerifyButton = Instance.new("TextButton")
-    VerifyButton.Name = "VerifyButton"
     VerifyButton.Size = UDim2.new(0.85, 0, 0, 40)
     VerifyButton.Position = UDim2.new(0.075, 0, 0.52, 0)
     VerifyButton.BackgroundColor3 = Color3.fromRGB(80, 50, 200)
@@ -67,11 +74,10 @@ task.spawn(function()
     BtnCorner.Parent = VerifyButton
 
     local StatusLabel = Instance.new("TextLabel")
-    StatusLabel.Name = "StatusLabel"
     StatusLabel.Size = UDim2.new(1, 0, 0, 30)
     StatusLabel.Position = UDim2.new(0, 0, 0.78, 0)
     StatusLabel.BackgroundTransparency = 1
-    StatusLabel.Text = "Sistema Local Activo"
+    StatusLabel.Text = "Esperando verificación..."
     StatusLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
     StatusLabel.TextSize = 12
     StatusLabel.Font = Enum.Font.Gotham
@@ -92,16 +98,14 @@ task.spawn(function()
                 Theme = "Dark"
             })
 
-            -- Creamos primero la pestaña Main para que sea la predeterminada por índice
             local MainTab = Window:AddTab({ Title = "Main", Icon = "rbxassetid://4483345998" })
             local SettingsTab = Window:AddTab({ Title = "Settings", Icon = "settings" })
 
             MainTab:AddParagraph({
                 Title = "Estado del Sistema",
-                Content = "¡Autenticación correcta! Shadow Protocol activo y operativo."
+                Content = "¡Panel actualizado con éxito! Todo funcionando correctamente."
             })
 
-            -- Selecciona explícitamente Main al abrir
             Window:SelectTab(1)
         end
     end
@@ -118,7 +122,7 @@ task.spawn(function()
         StatusLabel.Text = "¡Acceso concedido!"
         StatusLabel.TextColor3 = Color3.fromRGB(50, 255, 50)
         
-        task.delay(0.5, function()
+        task.delay(0.4, function()
             KeyGui:Destroy()
             LoadMainScript()
         end)
