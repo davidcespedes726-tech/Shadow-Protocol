@@ -11,7 +11,7 @@ task.spawn(function()
     local Players = cloneref(game:GetService("Players"))
     local LocalPlayer = Players.LocalPlayer
 
-    -- Detectar la función de red del ejecutor para evitar bloqueos de Cloudflare
+    -- Detectar la función de red del ejecutor
     local httpRequest = (syn and syn.request) or (http and http.request) or http_request or request
 
     local KeyGui = Instance.new("ScreenGui")
@@ -136,7 +136,10 @@ task.spawn(function()
                 local reqSuccess, reqRes = pcall(function()
                     return httpRequest({
                         Url = url,
-                        Method = "GET"
+                        Method = "GET",
+                        Headers = {
+                            ["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+                        }
                     })
                 end)
                 if reqSuccess and reqRes and reqRes.Body then
