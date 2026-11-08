@@ -1,27 +1,22 @@
 task.spawn(function()
     -- =================================================
-    -- 1. CONFIGURACIÓN DE KEYAUTH
+    -- CONFIGURACIÓN DE KEYAUTH (API DIRECTA)
     -- =================================================
-    local KeyAuthApp = {
+    local KeyAuthConfig = {
         name = "Shadow Protocol",
         ownerid = "6E3KP1k829",
-        secret = "f38d03463f7ec6581704a2b14ad8896638014e2a7ed013ad9c313df04ec",
-        version = "1.0"
+        secret = "f38d03463f7ec6581704a2b14ad8896638014e2a7ed013ad9c313df04ec"
     }
 
-    local KeyAuth = loadstring(game:HttpGet("https://raw.githubusercontent.com/KeyAuth/KeyAuth-Roblox-Module/main/KeyAuth.lua"))()
-    
-    pcall(function()
-        KeyAuth:init(KeyAuthApp.name, KeyAuthApp.ownerid, KeyAuthApp.secret, KeyAuthApp.version)
-    end)
-
-    -- =================================================
-    -- 2. SERVICIOS Y CREACIÓN DE INTERFAZ
-    -- =================================================
+    local HttpService = game:GetService("HttpService")
+    local RbxAnalyticsService = game:GetService("RbxAnalyticsService")
     local CoreGui = cloneref(game:GetService("CoreGui"))
     local Players = cloneref(game:GetService("Players"))
     local LocalPlayer = Players.LocalPlayer
 
+    -- =================================================
+    -- CREACIÓN DE LA INTERFAZ GRÁFICA
+    -- =================================================
     local KeyGui = Instance.new("ScreenGui")
     KeyGui.Name = "ShadowProtocolKeySystem"
     KeyGui.ResetOnSpawn = false
@@ -101,7 +96,7 @@ task.spawn(function()
     StatusLabel.Parent = MainKeyFrame
 
     -- =================================================
-    -- 3. FUNCIÓN DE CARGA DEL MENÚ PRINCIPAL (FLUENT)
+    -- FUNCIÓN DE CARGA DEL MENÚ PRINCIPAL (FLUENT)
     -- =================================================
     local function LoadMainScript()
         print("[Shadow Protocol] Key validada exitosamente. Cargando Fluent Menu...")
@@ -130,48 +125,64 @@ task.spawn(function()
     end
 
     -- =================================================
-    -- 4. CONEXIÓN DEL BOTÓN CON CONTROL DE ERRORES
+    -- VALIDACIÓN CON API DIRECTA DE KEYAUTH
     -- =================================================
-    task.spawn(function()
-        -- Esperamos brevemente a que el botón esté completamente listo en memoria
-        local btn = MainKeyFrame:WaitForChild("VerifyButton", 5)
-        local txtBox = MainKeyFrame:WaitForChild("KeyInputText", 5)
-        local lblStatus = MainKeyFrame:WaitForChild("StatusLabel", 5)
+    VerifyButton.MouseButton1Click:Connect(function()
+        local inputKey = string.gsub(KeyInputText.Text, "%s+", "")
+        
+        if inputKey == "" then
+            StatusLabel.Text = "Por favor ingresa una llave"
+            StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
+            return
+        end
 
-        if btn and txtBox and lblStatus then
-            btn.MouseButton1Click:Connect(function()
-                local inputKey = string.gsub(txtBox.Text, "%s+", "")
-                
-                if inputKey == "" then
-                    lblStatus.Text = "Por favor ingresa una llave"
-                    lblStatus.TextColor3 = Color3.fromRGB(255, 50, 50)
-                    return
-                end
+        StatusLabel.Text = "Verificando Key y HWID..."
+        StatusLabel.TextColor3 = Color3.fromRGB(255, 255, 100)
 
-                lblStatus.Text = "Verificando Key y HWID..."
-                lblStatus.TextColor3 = Color3.fromRGB(255, 255, 100)
+        task.spawn(function()
+            local hwid = "unknown"
+            pcall(function()
+                hwid = RbxAnalyticsService:GetClientId()
+            end)
 
-                task.spawn(function()
-                    local success, result = pcall(function()
-                        return KeyAuth:license(inputKey)
-                    end)
+            local url = string.format(
+                "https://keyauth.win/api/1.2/?name=%s&ownerid=%s&secret=%s&type=license&key=%s&hwid=%s",
+                KeyAuthConfig.name,
+                KeyAuthConfig.ownerid,
+                KeyAuthConfig.secret,
+                inputKey,
+                hwid
+            )
 
-                    if KeyAuth.authenticated or (success and result == true) then
-                        lblStatus.Text = "¡Acceso concedido!"
-                        lblStatus.TextColor3 = Color3.fromRGB(50, 255, 50)
+            local success, response = pcall(function()
+                return game:HttpGet(url)
+            end)
+
+            if success and response then
+                local decodeSuccess, data = pcall(function()
+                    return HttpService:JSONDecode(response)
+                end)
+
+                if decodeSuccess and data then
+                    if data.success then
+                        StatusLabel.Text = "¡Acceso concedido!"
+                        StatusLabel.TextColor3 = Color3.fromRGB(50, 255, 50)
                         task.wait(1)
                         
                         KeyGui:Destroy()
                         LoadMainScript()
                     else
-                        local errMsg = type(result) == "string" and result or "Key inválida o HWID no coincide"
-                        lblStatus.Text = errMsg
-                        lblStatus.TextColor3 = Color3.fromRGB(255, 50, 50)
+                        StatusLabel.Text = data.message or "Key inválida o HWID no coincide"
+                        StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
                     end
-                end)
-            end)
-        else
-            warn("[Shadow Protocol] Error critico: No se pudieron instanciar los componentes de la GUI.")
-        end
+                else
+                    StatusLabel.Text = "Error al procesar respuesta"
+                    StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
+                end
+            else
+                StatusLabel.Text = "Error de conexión con KeyAuth"
+                StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
+            end
+        end)
     end)
 end)
