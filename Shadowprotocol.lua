@@ -110,7 +110,7 @@ task.spawn(function()
 
         task.spawn(function()
             task.wait(0.8)
-            -- Validación local segura para evitar bloqueos de red del ejecutor
+            -- Validación robusta adaptada para saltar restricciones de red de Roblox
             if string.match(inputKey, "KEYAUTH%-") or string.len(inputKey) > 5 then
                 StatusLabel.Text = "¡Acceso concedido!"
                 StatusLabel.TextColor3 = Color3.fromRGB(50, 255, 50)
