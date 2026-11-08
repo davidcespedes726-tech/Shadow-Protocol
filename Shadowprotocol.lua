@@ -83,7 +83,6 @@ task.spawn(function()
         end)
         
         if success and Fluent then
-            -- Acrylic desactivado para que el fondo sea sólido y legible
             local Window = Fluent:CreateWindow({
                 Title = "Shadow Protocol",
                 SubTitle = "by David Cespedes",
@@ -103,7 +102,8 @@ task.spawn(function()
                 Content = "¡Autenticación correcta! Shadow Protocol activo y operativo."
             })
 
-            Window:SelectTab(1)
+            -- Forzar la selección inmediata de la pestaña Main
+            Window:SelectTab(Tabs.Main)
         end
     end
 
