@@ -1,11 +1,11 @@
 task.spawn(function()
     -- =================================================
-    -- CONFIGURACIÓN DE KEYAUTH (CREDENTCIALES)
+    -- CONFIGURACIÓN DE KEYAUTH
     -- =================================================
     local KeyAuthApp = {
         name = "Shadow Protocol",
-        ownerid = "6E3KP1k829", -- Tu Account Owner ID
-        secret = "f38d03463f7ec6581704a2b14ad8896638014e2a7ed013ad9c313df04ec", -- Tu Application Secret
+        ownerid = "6E3KP1k829",
+        secret = "f38d03463f7ec6581704a2b14ad8896638014e2a7ed013ad9c313df04ec",
         version = "1.0"
     }
 
@@ -13,7 +13,7 @@ task.spawn(function()
     local KeyAuth = loadstring(game:HttpGet("https://raw.githubusercontent.com/KeyAuth/KeyAuth-Roblox-Module/main/KeyAuth.lua"))()
     
     -- Inicializar KeyAuth
-    local initSuccess = pcall(function()
+    pcall(function()
         KeyAuth:init(KeyAuthApp.name, KeyAuthApp.ownerid, KeyAuthApp.secret, KeyAuthApp.version)
     end)
 
@@ -108,7 +108,6 @@ task.spawn(function()
     local function LoadMainScript()
         print("[Shadow Protocol] Key validada exitosamente. Cargando Fluent Menu...")
         
-        -- Carga de tu menú principal
         local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
         
         local Window = Fluent:CreateWindow({
@@ -148,17 +147,16 @@ task.spawn(function()
         StatusLabel.Text = "Verificando Key y HWID..."
         StatusLabel.TextColor3 = Color3.fromRGB(255, 255, 100)
 
-        -- Intentar autenticar la Key en KeyAuth
-        local authSuccess, authResponse = pcall(function()
-            return KeyAuth:license(inputKey)
+        -- Llamada corregida a la licencia de KeyAuth
+        local success = pcall(function()
+            KeyAuth:license(inputKey)
         end)
 
-        if authSuccess and KeyAuth.authenticated then
+        if success and KeyAuth.authenticated then
             StatusLabel.Text = "¡Acceso concedido!"
             StatusLabel.TextColor3 = Color3.fromRGB(50, 255, 50)
             task.wait(1)
             
-            -- Destruir la ventana del Key System y desplegar el script principal
             KeyGui:Destroy()
             LoadMainScript()
         else
