@@ -114,77 +114,77 @@ task.spawn(function()
             return
         end
 
-        StatusLabel.Text = "Verificando Key y HWID..."
-        StatusLabel.TextColor3 = Color3.fromRGB(255, 255, 100)
+            StatusLabel.Text = "Verificando Key y HWID..."
+            StatusLabel.TextColor3 = Color3.fromRGB(255, 255, 100)
 
-        task.spawn(function()
-            local hwid = "unknown"
-            pcall(function() hwid = RbxAnalyticsService:GetClientId() end)
+            task.spawn(function()
+                local hwid = "unknown"
+                pcall(function() hwid = RbxAnalyticsService:GetClientId() end)
 
-            -- Usar método POST para evitar bloqueos estrictos de Cloudflare en GET
-            local url = "https://keyauth.win/api/1.2/"
-            local bodyData = string.format("name=%s&ownerid=%s&secret=%s&type=license&key=%s&hwid=%s",
-                KeyAuthConfig.name, KeyAuthConfig.ownerid, KeyAuthConfig.secret, inputKey, hwid
-            )
-
-            local success, responseBody = false, nil
-            if httpRequest then
-                local reqSuccess, reqRes = pcall(function()
-                    return httpRequest({
-                        Url = url,
-                        Method = "POST",
-                        Headers = {
-                            ["Content-Type"] = "application/x-www-form-urlencoded",
-                            ["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
-                        },
-                        Body = bodyData
-                    })
-                end)
-                if reqSuccess and reqRes and reqRes.Body then
-                    success = true
-                    responseBody = reqRes.Body
-                end
-            end
-
-            if not success then
-                local getUrl = string.format("https://keyauth.win/api/1.2/?name=%s&ownerid=%s&secret=%s&type=license&key=%s&hwid=%s",
-                    KeyAuthConfig.name, KeyAuthConfig.ownerid, KeyAuthConfig.secret, inputKey, hwid
+                -- Construcción segura de la URL con codificación de parámetros
+                local url = string.format(
+                    "https://keyauth.win/api/1.2/?name=%s&ownerid=%s&secret=%s&type=license&key=%s&hwid=%s",
+                    HttpService:UrlEncode(KeyAuthConfig.name),
+                    HttpService:UrlEncode(KeyAuthConfig.ownerid),
+                    HttpService:UrlEncode(KeyAuthConfig.secret),
+                    HttpService:UrlEncode(inputKey),
+                    HttpService:UrlEncode(hwid)
                 )
-                local getSuccess, getRes = pcall(function() return game:HttpGet(getUrl) end)
-                if getSuccess then
-                    success = true
-                    responseBody = getRes
-                end
-            end
 
-            if success and responseBody then
-                -- Comprobación por si Cloudflare devuelve HTML
-                if string.find(responseBody, "<html") or string.find(responseBody, "Just a moment") then
-                    StatusLabel.Text = "Bloqueado por Cloudflare (Prueba otro ejecutor)"
-                    StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
-                    return
+                local success, responseBody = false, nil
+                if httpRequest then
+                    local reqSuccess, reqRes = pcall(function()
+                        return httpRequest({
+                            Url = url,
+                            Method = "GET",
+                            Headers = {
+                                ["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+                            }
+                        })
+                    end)
+                    if reqSuccess and reqRes and reqRes.Body then
+                        success = true
+                        responseBody = reqRes.Body
+                    end
                 end
 
-                local decodeSuccess, data = pcall(function() return HttpService:JSONDecode(responseBody) end)
-                if decodeSuccess and data then
-                    if data.success then
-                        StatusLabel.Text = "¡Acceso concedido!"
-                        StatusLabel.TextColor3 = Color3.fromRGB(50, 255, 50)
-                        task.wait(1)
-                        KeyGui:Destroy()
-                        LoadMainScript()
+                if not success then
+                    local getSuccess, getRes = pcall(function()
+                        return game:HttpGet(url)
+                    end)
+                    if getSuccess then
+                        success = true
+                        responseBody = getRes
+                    end
+                end
+
+                if success and responseBody then
+                    -- Imprimir respuesta cruda en consola F9 para diagnóstico exacto si falla
+                    print("[KeyAuth Response]:", responseBody)
+
+                    local decodeSuccess, data = pcall(function()
+                        return HttpService:JSONDecode(responseBody)
+                    end)
+
+                    if decodeSuccess and type(data) == "table" then
+                        if data.success == true then
+                            StatusLabel.Text = "¡Acceso concedido!"
+                            StatusLabel.TextColor3 = Color3.fromRGB(50, 255, 50)
+                            task.wait(1)
+                            KeyGui:Destroy()
+                            LoadMainScript()
+                        else
+                            StatusLabel.Text = data.message or "Key inválida o HWID no coincide"
+                            StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
+                        end
                     else
-                        StatusLabel.Text = data.message or "Key inválida o HWID no coincide"
+                        StatusLabel.Text = "Error al procesar respuesta"
                         StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
                     end
                 else
-                    StatusLabel.Text = "Error al procesar respuesta JSON"
+                    StatusLabel.Text = "Error de conexión con KeyAuth"
                     StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
                 end
-            else
-                StatusLabel.Text = "Error de conexión con KeyAuth"
-                StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
-            end
-        end)
+            end)
     end)
 end)
