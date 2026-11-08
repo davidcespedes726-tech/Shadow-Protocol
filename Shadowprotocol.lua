@@ -121,8 +121,9 @@ task.spawn(function()
             local hwid = "unknown"
             pcall(function() hwid = RbxAnalyticsService:GetClientId() end)
 
+            -- Actualizado al nuevo dominio oficial keyauth.cc
             local url = string.format(
-                "https://keyauth.win/api/1.2/?name=%s&ownerid=%s&secret=%s&type=license&key=%s&hwid=%s",
+                "https://keyauth.cc/api/1.2/?name=%s&ownerid=%s&secret=%s&type=license&key=%s&hwid=%s",
                 HttpService:UrlEncode(KeyAuthConfig.name),
                 HttpService:UrlEncode(KeyAuthConfig.ownerid),
                 HttpService:UrlEncode(KeyAuthConfig.secret),
@@ -158,13 +159,6 @@ task.spawn(function()
             end
 
             if success and responseBody then
-                -- Comprobación estricta para detectar bloqueos de Cloudflare
-                if string.find(responseBody, "<html") or string.find(responseBody, "Just a moment") then
-                    StatusLabel.Text = "Cloudflare bloqueó la IP del ejecutor"
-                    StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
-                    return
-                end
-
                 local decodeSuccess, data = pcall(function()
                     return HttpService:JSONDecode(responseBody)
                 end)
@@ -181,7 +175,7 @@ task.spawn(function()
                         StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
                     end
                 else
-                    StatusLabel.Text = "Error: Respuesta no es JSON válido"
+                    StatusLabel.Text = "Error al procesar respuesta"
                     StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
                 end
             else
