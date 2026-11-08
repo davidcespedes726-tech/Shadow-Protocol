@@ -1,18 +1,33 @@
 task.spawn(function()
-    local KeyAuthConfig = {
+    -- =================================================
+    -- CONFIGURACIÓN DE KEYAUTH
+    -- =================================================
+    local KeyAuthApp = {
         name = "Shadow Protocol",
         ownerid = "6E3KP1k829",
-        secret = "f38d03463f7ec6581704a2b14ad8896638014e2a7ed013ad9c313df04ec"
+        secret = "f38d03463f7ec6581704a2b14ad8896638014e2a7ed013ad9c313df04ec",
+        version = "1.0"
     }
 
-    local HttpService = game:GetService("HttpService")
-    local RbxAnalyticsService = game:GetService("RbxAnalyticsService")
+    -- Cargar el módulo oficial de KeyAuth (maneja la sesión init automáticamente)
+    local KeyAuthSuccess, KeyAuthModule = pcall(function()
+        return loadstring(game:HttpGet("https://raw.githubusercontent.com/KeyAuth/KeyAuth-Roblox-Module/main/KeyAuth.lua"))()
+    end)
+
+    local KeyAuth = nil
+    if KeyAuthSuccess and KeyAuthModule then
+        KeyAuth = KeyAuthModule
+        pcall(function()
+            KeyAuth:init(KeyAuthApp.name, KeyAuthApp.ownerid, KeyAuthApp.secret, KeyAuthApp.version)
+        end)
+    end
+
+    -- =================================================
+    -- SERVICIOS Y CREACIÓN DE INTERFAZ
+    -- =================================================
     local CoreGui = cloneref(game:GetService("CoreGui"))
     local Players = cloneref(game:GetService("Players"))
     local LocalPlayer = Players.LocalPlayer
-
-    -- Detectar la función de red del ejecutor
-    local httpRequest = (syn and syn.request) or (http and http.request) or http_request or request
 
     local KeyGui = Instance.new("ScreenGui")
     KeyGui.Name = "ShadowProtocolKeySystem"
@@ -92,6 +107,9 @@ task.spawn(function()
     StatusLabel.Font = Enum.Font.Gotham
     StatusLabel.Parent = MainKeyFrame
 
+    -- =================================================
+    -- FUNCIÓN DE CARGA DEL MENÚ PRINCIPAL (FLUENT)
+    -- =================================================
     local function LoadMainScript()
         print("[Shadow Protocol] Key validada. Cargando menú...")
         local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
@@ -111,6 +129,9 @@ task.spawn(function()
         Window:SelectTab(1)
     end
 
+    -- =================================================
+    -- EVENTO DE VALIDACIÓN DE KEY
+    -- =================================================
     VerifyButton.MouseButton1Click:Connect(function()
         local inputKey = string.gsub(KeyInputText.Text, "%s+", "")
         if inputKey == "" then
@@ -123,60 +144,24 @@ task.spawn(function()
         StatusLabel.TextColor3 = Color3.fromRGB(255, 255, 100)
 
         task.spawn(function()
-            local hwid = "unknown"
-            pcall(function() hwid = RbxAnalyticsService:GetClientId() end)
-
-            local url = string.format(
-                "https://keyauth.win/api/1.2/?name=%s&ownerid=%s&secret=%s&type=license&key=%s&hwid=%s",
-                KeyAuthConfig.name, KeyAuthConfig.ownerid, KeyAuthConfig.secret, inputKey, hwid
-            )
-
-            local success, responseBody = false, nil
-            if httpRequest then
-                local reqSuccess, reqRes = pcall(function()
-                    return httpRequest({
-                        Url = url,
-                        Method = "GET",
-                        Headers = {
-                            ["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
-                        }
-                    })
-                end)
-                if reqSuccess and reqRes and reqRes.Body then
-                    success = true
-                    responseBody = reqRes.Body
-                end
+            if not KeyAuth then
+                StatusLabel.Text = "Error: Módulo KeyAuth no cargado"
+                StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
+                return
             end
 
-            if not success then
-                local getSuccess, getRes = pcall(function()
-                    return game:HttpGet(url)
-                end)
-                if getSuccess then
-                    success = true
-                    responseBody = getRes
-                end
-            end
+            local success = pcall(function()
+                KeyAuth:license(inputKey)
+            end)
 
-            if success and responseBody then
-                local decodeSuccess, data = pcall(function() return HttpService:JSONDecode(responseBody) end)
-                if decodeSuccess and data then
-                    if data.success then
-                        StatusLabel.Text = "¡Acceso concedido!"
-                        StatusLabel.TextColor3 = Color3.fromRGB(50, 255, 50)
-                        task.wait(1)
-                        KeyGui:Destroy()
-                        LoadMainScript()
-                    else
-                        StatusLabel.Text = data.message or "Key inválida o HWID no coincide"
-                        StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
-                    end
-                else
-                    StatusLabel.Text = "Error al procesar respuesta"
-                    StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
-                end
+            if success and KeyAuth.authenticated then
+                StatusLabel.Text = "¡Acceso concedido!"
+                StatusLabel.TextColor3 = Color3.fromRGB(50, 255, 50)
+                task.wait(1)
+                KeyGui:Destroy()
+                LoadMainScript()
             else
-                StatusLabel.Text = "Error de conexión con KeyAuth"
+                StatusLabel.Text = "Key inválida o HWID no coincide"
                 StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
             end
         end)
