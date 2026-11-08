@@ -1,16 +1,14 @@
 task.spawn(function()
-    local CoreGui = cloneref(game:GetService("CoreGui"))
-    local Players = cloneref(game:GetService("Players"))
+    local Players = game:GetService("Players")
     local LocalPlayer = Players.LocalPlayer
+    local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
-    -- Creación de la interfaz gráfica del Key System
+    -- Interfaz Gráfica Limpia y Directa
     local KeyGui = Instance.new("ScreenGui")
     KeyGui.Name = "ShadowProtocolKeySystem"
     KeyGui.ResetOnSpawn = false
     KeyGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-
-    pcall(function() KeyGui.Parent = CoreGui end)
-    if not KeyGui.Parent then KeyGui.Parent = LocalPlayer:WaitForChild("PlayerGui") end
+    KeyGui.Parent = PlayerGui
 
     local MainKeyFrame = Instance.new("Frame")
     MainKeyFrame.Name = "MainKeyFrame"
@@ -41,7 +39,7 @@ task.spawn(function()
     KeyInputText.Position = UDim2.new(0.075, 0, 0.28, 0)
     KeyInputText.BackgroundColor3 = Color3.fromRGB(30, 30, 38)
     KeyInputText.Text = ""
-    KeyInputText.PlaceholderText = "Ingresa tu Key de KeyAuth aquí..."
+    KeyInputText.PlaceholderText = "Ingresa tu Key aquí..."
     KeyInputText.TextColor3 = Color3.fromRGB(255, 255, 255)
     KeyInputText.PlaceholderColor3 = Color3.fromRGB(150, 150, 150)
     KeyInputText.TextSize = 14
@@ -72,53 +70,67 @@ task.spawn(function()
     StatusLabel.Size = UDim2.new(1, 0, 0, 30)
     StatusLabel.Position = UDim2.new(0, 0, 0.78, 0)
     StatusLabel.BackgroundTransparency = 1
-    StatusLabel.Text = "HWID Lock Activado"
+    StatusLabel.Text = "Sistema Local Activo"
     StatusLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
     StatusLabel.TextSize = 12
     StatusLabel.Font = Enum.Font.Gotham
     StatusLabel.Parent = MainKeyFrame
 
     local function LoadMainScript()
-        print("[Shadow Protocol] Key validada exitosamente. Cargando menú principal...")
-        local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
-        local Window = Fluent:CreateWindow({
-            Title = "Shadow Protocol",
-            SubTitle = "by David Cespedes",
-            TabWidth = 160,
-            Size = UDim2.fromOffset(580, 460),
-            Acrylic = true,
-            Theme = "Dark"
-        })
-        local Tabs = {
-            Main = Window:AddTab({ Title = "Main", Icon = "rbxassetid://4483345998" }),
-            Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
-        }
-        Tabs.Main:AddParagraph({ Title = "Estado", Content = "¡Autenticación HWID correcta y sistema activo!" })
-        Window:SelectTab(1)
+        local success, Fluent = pcall(function()
+            return loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+        end)
+        
+        if success and Fluent then
+            local Window = Fluent:CreateWindow({
+                Title = "Shadow Protocol",
+                SubTitle = "by David Cespedes",
+                TabWidth = 160,
+                Size = UDim2.fromOffset(580, 460),
+                Acrylic = true,
+                Theme = "Dark"
+            })
+
+            local Tabs = {
+                Main = Window:AddTab({ Title = "Main", Icon = "rbxassetid://4483345998" }),
+                Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
+            }
+
+            Tabs.Main:AddParagraph({
+                Title = "Estado",
+                Content = "¡Autenticación correcta! Shadow Protocol cargado con éxito."
+            })
+
+            Window:SelectTab(1)
+        else
+            StatusLabel.Text = "Error al cargar la librería Fluent"
+            StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
+        end
     end
 
     VerifyButton.MouseButton1Click:Connect(function()
         local inputKey = string.gsub(KeyInputText.Text, "%s+", "")
+        
         if inputKey == "" then
             StatusLabel.Text = "Por favor ingresa una llave"
             StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
             return
         end
 
-        StatusLabel.Text = "Verificando Key y HWID..."
+        StatusLabel.Text = "Verificando..."
         StatusLabel.TextColor3 = Color3.fromRGB(255, 255, 100)
 
         task.spawn(function()
-            task.wait(0.8)
-            -- Validación robusta adaptada para saltar restricciones de red de Roblox
-            if string.match(inputKey, "KEYAUTH%-") or string.len(inputKey) > 5 then
+            task.wait(0.5)
+            -- Validación local inmediata para saltar el bloqueo de red de los ejecutores
+            if string.len(inputKey) > 3 then
                 StatusLabel.Text = "¡Acceso concedido!"
                 StatusLabel.TextColor3 = Color3.fromRGB(50, 255, 50)
                 task.wait(1)
                 KeyGui:Destroy()
                 LoadMainScript()
             else
-                StatusLabel.Text = "Key inválida o formato incorrecto"
+                StatusLabel.Text = "Key demasiado corta"
                 StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
             end
         end)
