@@ -83,11 +83,12 @@ task.spawn(function()
         end)
         
         if success and Fluent then
+            -- Ventaja ajustada a un formato más compacto y con pestaña Main por defecto
             local Window = Fluent:CreateWindow({
                 Title = "Shadow Protocol",
                 SubTitle = "by David Cespedes",
-                TabWidth = 160,
-                Size = UDim2.fromOffset(580, 460),
+                TabWidth = 140,
+                Size = UDim2.fromOffset(480, 360),
                 Acrylic = true,
                 Theme = "Dark"
             })
