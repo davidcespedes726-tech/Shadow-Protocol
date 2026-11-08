@@ -166,7 +166,6 @@ Button.MouseButton1Click:Connect(function()
                     StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
                 end
             else
-                -- Validación de respaldo por texto plano si el JSON falla
                 if responseBody:find('"success":true') or responseBody:find('true') then
                     StatusLabel.Text = "¡Acceso concedido!"
                     StatusLabel.TextColor3 = Color3.fromRGB(50, 255, 50)
@@ -185,7 +184,6 @@ Button.MouseButton1Click:Connect(function()
     end)
 end)
 
--- Pausar la ejecución hasta que la key sea correcta
 repeat task.wait(0.5) until verified
 
 
@@ -202,7 +200,7 @@ local Window = Fluent:CreateWindow({
     SubTitle = "Paid Version",
     TabWidth = 100,
     Size = UDim2.fromOffset(580, 460),
-    Acrylic = true,
+    Acrylic = false, -- <--- AQUÍ SE QUITÓ LA PANTALLA BORROSA (ACRYLIC DESACTIVADO)
     Theme = "Darker",
     MinimizeKey = Enum.KeyCode.LeftControl
 })
