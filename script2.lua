@@ -13,7 +13,7 @@ task.spawn(function()
 
     local httpRequest = (syn and syn.request) or (http and http.request) or http_request or request
 
-    -- Inicializar sesión automáticamente con KeyAuth de forma interna
+    -- Inicializar sesión de KeyAuth en segundo plano
     local sessionId = ""
     task.spawn(function()
         local initUrl = string.format(
@@ -36,6 +36,7 @@ task.spawn(function()
         end
     end)
 
+    -- Interfaz Gráfica
     local KeyGui = Instance.new("ScreenGui")
     KeyGui.Name = "ShadowProtocolKeySystem"
     KeyGui.ResetOnSpawn = false
@@ -145,7 +146,7 @@ task.spawn(function()
             pcall(function() hwid = RbxAnalyticsService:GetClientId() end)
 
             local timeout = 0
-            while sessionId == "" and timeout < 20 do
+            while sessionId == "" and timeout < 30 do
                 task.wait(0.1)
                 timeout = timeout + 1
             end
