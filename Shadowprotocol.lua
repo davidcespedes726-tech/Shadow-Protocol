@@ -121,59 +121,23 @@ task.spawn(function()
             local hwid = "unknown"
             pcall(function() hwid = RbxAnalyticsService:GetClientId() end)
 
-            -- 1. Inicializar sesión de KeyAuth (Paso obligatorio)
-            local initUrl = string.format(
-                "https://keyauth.cc/api/1.2/?name=%s&ownerid=%s&secret=%s&type=init",
-                HttpService:UrlEncode(KeyAuthConfig.name),
-                HttpService:UrlEncode(KeyAuthConfig.ownerid),
-                HttpService:UrlEncode(KeyAuthConfig.secret)
-            )
-
-            local initSuccess, initRes = pcall(function()
-                if httpRequest then
-                    local r = httpRequest({ Url = initUrl, Method = "GET", Headers = { ["User-Agent"] = "Mozilla/5.0" } })
-                    return r and r.Body
-                else
-                    return game:HttpGet(initUrl)
-                end
-            end)
-
-            if not initSuccess or not initRes then
-                StatusLabel.Text = "Error de conexión al iniciar sesión"
-                StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
-                return
-            end
-
-            local initDecodeOk, initData = pcall(function()
-                return HttpService:JSONDecode(initRes)
-            end)
-
-            if not initDecodeOk or not initData or not initData.success then
-                StatusLabel.Text = initData and initData.message or "Error al procesar sesión"
-                StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
-                return
-            end
-
-            local sessionid = initData.sessionid
-
-            -- 2. Validar la licencia usando el sessionid obtenido
-            local licenseUrl = string.format(
-                "https://keyauth.cc/api/1.2/?name=%s&ownerid=%s&secret=%s&type=license&key=%s&hwid=%s&sessionid=%s",
+            -- Método directo por URL con codificación segura (omite el paso intermedio de init)
+            local url = string.format(
+                "https://keyauth.cc/api/1.2/?name=%s&ownerid=%s&secret=%s&type=license&key=%s&hwid=%s",
                 HttpService:UrlEncode(KeyAuthConfig.name),
                 HttpService:UrlEncode(KeyAuthConfig.ownerid),
                 HttpService:UrlEncode(KeyAuthConfig.secret),
                 HttpService:UrlEncode(inputKey),
-                HttpService:UrlEncode(hwid),
-                HttpService:UrlEncode(sessionid)
+                HttpService:UrlEncode(hwid)
             )
 
             local success, responseBody = false, nil
             if httpRequest then
                 local reqSuccess, reqRes = pcall(function()
                     return httpRequest({
-                        Url = licenseUrl,
+                        Url = url,
                         Method = "GET",
-                        Headers = { ["User-Agent"] = "Mozilla/5.0" }
+                        Headers = { ["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" }
                     })
                 end)
                 if reqSuccess and reqRes and reqRes.Body then
@@ -183,9 +147,7 @@ task.spawn(function()
             end
 
             if not success or not responseBody then
-                local getSuccess, getRes = pcall(function()
-                    return game:HttpGet(licenseUrl)
-                end)
+                local getSuccess, getRes = pcall(function() return game:HttpGet(url) end)
                 if getSuccess then
                     success = true
                     responseBody = getRes
@@ -193,10 +155,7 @@ task.spawn(function()
             end
 
             if success and responseBody then
-                local decodeSuccess, data = pcall(function()
-                    return HttpService:JSONDecode(responseBody)
-                end)
-
+                local decodeSuccess, data = pcall(function() return HttpService:JSONDecode(responseBody) end)
                 if decodeSuccess and type(data) == "table" then
                     if data.success == true then
                         StatusLabel.Text = "¡Acceso concedido!"
