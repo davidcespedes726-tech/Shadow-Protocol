@@ -3,7 +3,7 @@ task.spawn(function()
     local Players = cloneref(game:GetService("Players"))
     local LocalPlayer = Players.LocalPlayer
 
-    -- Interfaz del Key System
+    -- Sistema de Autenticación Local
     local KeyGui = Instance.new("ScreenGui")
     KeyGui.Name = "ShadowProtocolKeySystem"
     KeyGui.ResetOnSpawn = false
@@ -84,7 +84,7 @@ task.spawn(function()
         end)
         
         if success and Fluent then
-            -- Creación de la ventana con las opciones exactas de tu panel original
+            -- Creación de la ventana principal idéntica a tu diseño original
             local Window = Fluent:CreateWindow({
                 Title = "Shadow Protocol",
                 SubTitle = "Paid Version",
@@ -94,7 +94,7 @@ task.spawn(function()
                 Theme = "Dark"
             })
 
-            -- Pestañas idénticas a tu panel original
+            -- Pestañas completas originales
             local Tabs = {
                 Autoparry = Window:AddTab({ Title = "Autoparry", Icon = "sword" }),
                 Spam = Window:AddTab({ Title = "Spam", Icon = "message-square" }),
@@ -104,15 +104,14 @@ task.spawn(function()
                 Settings = Window:AddTab({ Title = "Settings", Icon = "sliders" })
             }
 
-            -- Controles de ejemplo en la pestaña Autoparry para que no aparezca vacía
+            -- Opciones de Autoparry idénticas a tu imagen
             Tabs.Autoparry:AddParagraph({
                 Title = "Auto Parry",
-                Content = "Configuración del sistema de parachoques automático."
+                Content = "Auto Parry\nAutomatically parries ball"
             })
 
-            Tabs.Autoparry:AddToggle("AutoParryToggle", {
+            Tabs.Autoparry:AddToggle("AutoParry", {
                 Title = "Auto Parry",
-                Description = "Automatically parries ball",
                 Default = false
             })
 
@@ -133,7 +132,7 @@ task.spawn(function()
                 Default = false
             })
 
-            -- Seleccionar la pestaña Autoparry por defecto al abrir
+            -- Seleccionar la pestaña Autoparry por defecto
             Window:SelectTab(1)
         end
     end
