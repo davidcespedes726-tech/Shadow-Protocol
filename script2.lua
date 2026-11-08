@@ -11,6 +11,9 @@ task.spawn(function()
     local Players = cloneref(game:GetService("Players"))
     local LocalPlayer = Players.LocalPlayer
 
+    -- Detectar la función de red del ejecutor para evitar bloqueos de Cloudflare
+    local httpRequest = (syn and syn.request) or (http and http.request) or http_request or request
+
     local KeyGui = Instance.new("ScreenGui")
     KeyGui.Name = "ShadowProtocolKeySystem"
     KeyGui.ResetOnSpawn = false
@@ -128,9 +131,32 @@ task.spawn(function()
                 KeyAuthConfig.name, KeyAuthConfig.ownerid, KeyAuthConfig.secret, inputKey, hwid
             )
 
-            local success, response = pcall(function() return game:HttpGet(url) end)
-            if success and response then
-                local decodeSuccess, data = pcall(function() return HttpService:JSONDecode(response) end)
+            local success, responseBody = false, nil
+            if httpRequest then
+                local reqSuccess, reqRes = pcall(function()
+                    return httpRequest({
+                        Url = url,
+                        Method = "GET"
+                    })
+                end)
+                if reqSuccess and reqRes and reqRes.Body then
+                    success = true
+                    responseBody = reqRes.Body
+                end
+            end
+
+            if not success then
+                local getSuccess, getRes = pcall(function()
+                    return game:HttpGet(url)
+                end)
+                if getSuccess then
+                    success = true
+                    responseBody = getRes
+                end
+            end
+
+            if success and responseBody then
+                local decodeSuccess, data = pcall(function() return HttpService:JSONDecode(responseBody) end)
                 if decodeSuccess and data then
                     if data.success then
                         StatusLabel.Text = "¡Acceso concedido!"
