@@ -122,39 +122,10 @@ task.spawn(function()
             local hwid = "unknown"
             pcall(function() hwid = RbxAnalyticsService:GetClientId() end)
 
-            -- Paso 1: Inicializar sesión en KeyAuth
-            local initUrl = string.format(
-                "https://keyauth.win/api/1.2/?name=%s&ownerid=%s&secret=%s&type=init",
-                KeyAuthConfig.name, KeyAuthConfig.ownerid, KeyAuthConfig.secret
-            )
-
-            local sessionid = ""
-            local initSuccess, initRes = pcall(function()
-                if httpRequest then
-                    local r = httpRequest({ Url = initUrl, Method = "GET", Headers = { ["User-Agent"] = "Mozilla/5.0" } })
-                    return r and r.Body
-                else
-                    return game:HttpGet(initUrl)
-                end
-            end)
-
-            if initSuccess and initRes then
-                local decodeOk, initData = pcall(function() return HttpService:JSONDecode(initRes) end)
-                if decodeOk and initData and initData.success then
-                    sessionid = initData.sessionid
-                end
-            end
-
-            if sessionid == "" then
-                StatusLabel.Text = "Error al iniciar sesión en KeyAuth"
-                StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
-                return
-            end
-
-            -- Paso 2: Validar la Licencia con el sessionid obtenido
+            -- Petición directa optimizada omitiendo el init previo
             local licenseUrl = string.format(
-                "https://keyauth.win/api/1.2/?name=%s&ownerid=%s&secret=%s&type=license&key=%s&hwid=%s&sessionid=%s",
-                KeyAuthConfig.name, KeyAuthConfig.ownerid, KeyAuthConfig.secret, inputKey, hwid, sessionid
+                "https://keyauth.win/api/1.2/?name=%s&ownerid=%s&secret=%s&type=license&key=%s&hwid=%s",
+                KeyAuthConfig.name, KeyAuthConfig.ownerid, KeyAuthConfig.secret, inputKey, hwid
             )
 
             local success, responseBody = false, nil
