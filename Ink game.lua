@@ -1,31 +1,27 @@
 -- =====================================================================
---      SHADOW PROTOCOL - PAID VERSION (PARCHE DE CARGA UI)
+--      SHADOW PROTOCOL - PAID VERSION (CORRECTED LOADER)
 -- =====================================================================
 
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-
--- Intentar cargar la librería UI de forma segura con reintentos
-local success, library = pcall(function()
+local Success, Library = pcall(function()
     return loadstring(game:HttpGet("https://raw.githubusercontent.com/BocusLuke/UI/main/STX/Module.Lua"))()
 end)
 
-if not success or not library then
-    warn("[Shadow Protocol] Error: No se pudo conectar con el servidor de la UI. Verificando red...")
+if not Success or not Library then
+    warn("[Shadow Protocol] Error crítico: No se pudo cargar la librería UI.")
     
-    -- Notificación de respaldo en pantalla si falla la UI principal
+    -- Notificación visual de respaldo en pantalla para que sepas qué falló
     pcall(function()
         game:GetService("StarterGui"):SetCore("SendNotification", {
             Title = "Shadow Protocol Error",
-            Text = "Fallo al cargar la librería gráfica. Revisa tu ejecutor.",
+            Text = "Fallo al conectar con el servidor de la UI. Revisa tu red o exploit.",
             Duration = 6,
         })
     end)
     return
 end
 
--- Si la librería carga con éxito, procede a crear la ventana
-local Window = library:CreateWindow({
+-- Inicialización de la ventana si la librería cargó con éxito
+local Window = Library:CreateWindow({
     Title = "Shadow Protocol | Paid Version",
     Icon = "bird",
     Folder = "ShadowProtocol",
@@ -50,4 +46,4 @@ local Window = library:CreateWindow({
     },
 })
 
-print("[Shadow Protocol] ¡Interfaz cargada y ejecutada correctamente!")
+print("[Shadow Protocol] ¡Interfaz cargada correctamente!")
