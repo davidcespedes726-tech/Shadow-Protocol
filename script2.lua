@@ -1,7 +1,4 @@
 task.spawn(function()
-    -- =================================================
-    -- CONFIGURACIÓN DE KEYAUTH (API DIRECTA)
-    -- =================================================
     local KeyAuthConfig = {
         name = "Shadow Protocol",
         ownerid = "6E3KP1k829",
@@ -14,9 +11,6 @@ task.spawn(function()
     local Players = cloneref(game:GetService("Players"))
     local LocalPlayer = Players.LocalPlayer
 
-    -- =================================================
-    -- CREACIÓN DE LA INTERFAZ GRÁFICA
-    -- =================================================
     local KeyGui = Instance.new("ScreenGui")
     KeyGui.Name = "ShadowProtocolKeySystem"
     KeyGui.ResetOnSpawn = false
@@ -95,13 +89,9 @@ task.spawn(function()
     StatusLabel.Font = Enum.Font.Gotham
     StatusLabel.Parent = MainKeyFrame
 
-    -- =================================================
-    -- FUNCIÓN DE CARGA DEL MENÚ PRINCIPAL (FLUENT)
-    -- =================================================
     local function LoadMainScript()
-        print("[Shadow Protocol] Key validada exitosamente. Cargando Fluent Menu...")
+        print("[Shadow Protocol] Key validada. Cargando menú...")
         local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
-        
         local Window = Fluent:CreateWindow({
             Title = "Shadow Protocol",
             SubTitle = "by David Cespedes",
@@ -110,26 +100,16 @@ task.spawn(function()
             Acrylic = true,
             Theme = "Dark"
         })
-
         local Tabs = {
             Main = Window:AddTab({ Title = "Main", Icon = "rbxassetid://4483345998" }),
             Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
         }
-
-        Tabs.Main:AddParagraph({
-            Title = "Estado",
-            Content = "¡Autenticación HWID correcta! Shadow Protocol activo."
-        })
-
+        Tabs.Main:AddParagraph({ Title = "Estado", Content = "¡Autenticación HWID correcta!" })
         Window:SelectTab(1)
     end
 
-    -- =================================================
-    -- VALIDACIÓN CON API DIRECTA DE KEYAUTH
-    -- =================================================
     VerifyButton.MouseButton1Click:Connect(function()
         local inputKey = string.gsub(KeyInputText.Text, "%s+", "")
-        
         if inputKey == "" then
             StatusLabel.Text = "Por favor ingresa una llave"
             StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
@@ -141,34 +121,21 @@ task.spawn(function()
 
         task.spawn(function()
             local hwid = "unknown"
-            pcall(function()
-                hwid = RbxAnalyticsService:GetClientId()
-            end)
+            pcall(function() hwid = RbxAnalyticsService:GetClientId() end)
 
             local url = string.format(
                 "https://keyauth.win/api/1.2/?name=%s&ownerid=%s&secret=%s&type=license&key=%s&hwid=%s",
-                KeyAuthConfig.name,
-                KeyAuthConfig.ownerid,
-                KeyAuthConfig.secret,
-                inputKey,
-                hwid
+                KeyAuthConfig.name, KeyAuthConfig.ownerid, KeyAuthConfig.secret, inputKey, hwid
             )
 
-            local success, response = pcall(function()
-                return game:HttpGet(url)
-            end)
-
+            local success, response = pcall(function() return game:HttpGet(url) end)
             if success and response then
-                local decodeSuccess, data = pcall(function()
-                    return HttpService:JSONDecode(response)
-                end)
-
+                local decodeSuccess, data = pcall(function() return HttpService:JSONDecode(response) end)
                 if decodeSuccess and data then
                     if data.success then
                         StatusLabel.Text = "¡Acceso concedido!"
                         StatusLabel.TextColor3 = Color3.fromRGB(50, 255, 50)
                         task.wait(1)
-                        
                         KeyGui:Destroy()
                         LoadMainScript()
                     else
