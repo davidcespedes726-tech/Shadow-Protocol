@@ -138,9 +138,9 @@ Button.MouseButton1Click:Connect(function()
                     Headers = { ["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" }
                 })
             end)
-            if reqSuccess and reqRes and reqRes.Body then
+            if reqSuccess and reqRes then
                 success = true
-                responseBody = reqRes.Body
+                responseBody = reqRes.Body or reqRes.body or tostring(reqRes)
             end
         end
 
@@ -166,8 +166,17 @@ Button.MouseButton1Click:Connect(function()
                     StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
                 end
             else
-                StatusLabel.Text = "Error al procesar respuesta"
-                StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
+                -- Validación de respaldo por texto plano si el JSON falla
+                if responseBody:find('"success":true') or responseBody:find('true') then
+                    StatusLabel.Text = "¡Acceso concedido!"
+                    StatusLabel.TextColor3 = Color3.fromRGB(50, 255, 50)
+                    task.wait(0.8)
+                    verified = true
+                    KeyGui:Destroy()
+                else
+                    StatusLabel.Text = "Key inválida o error en servidor"
+                    StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
+                end
             end
         else
             StatusLabel.Text = "Error de conexión con KeyAuth"
