@@ -83,13 +83,13 @@ task.spawn(function()
         end)
         
         if success and Fluent then
-            -- Ventaja ajustada a un formato más compacto y con pestaña Main por defecto
+            -- Acrylic desactivado para que el fondo sea sólido y legible
             local Window = Fluent:CreateWindow({
                 Title = "Shadow Protocol",
                 SubTitle = "by David Cespedes",
                 TabWidth = 140,
-                Size = UDim2.fromOffset(480, 360),
-                Acrylic = true,
+                Size = UDim2.fromOffset(500, 380),
+                Acrylic = false,
                 Theme = "Dark"
             })
 
@@ -99,7 +99,7 @@ task.spawn(function()
             }
 
             Tabs.Main:AddParagraph({
-                Title = "Estado",
+                Title = "Estado del Sistema",
                 Content = "¡Autenticación correcta! Shadow Protocol activo y operativo."
             })
 
