@@ -13,7 +13,6 @@ task.spawn(function()
 
     local httpRequest = (syn and syn.request) or (http and http.request) or http_request or request
 
-    -- Interfaz Gráfica
     local KeyGui = Instance.new("ScreenGui")
     KeyGui.Name = "ShadowProtocolKeySystem"
     KeyGui.ResetOnSpawn = false
@@ -122,8 +121,9 @@ task.spawn(function()
             local hwid = "unknown"
             pcall(function() hwid = RbxAnalyticsService:GetClientId() end)
 
-            local url = string.format(
-                "https://keyauth.win/api/1.2/?name=%s&ownerid=%s&secret=%s&type=license&key=%s&hwid=%s",
+            -- Usar método POST para evitar bloqueos estrictos de Cloudflare en GET
+            local url = "https://keyauth.win/api/1.2/"
+            local bodyData = string.format("name=%s&ownerid=%s&secret=%s&type=license&key=%s&hwid=%s",
                 KeyAuthConfig.name, KeyAuthConfig.ownerid, KeyAuthConfig.secret, inputKey, hwid
             )
 
@@ -132,8 +132,12 @@ task.spawn(function()
                 local reqSuccess, reqRes = pcall(function()
                     return httpRequest({
                         Url = url,
-                        Method = "GET",
-                        Headers = { ["User-Agent"] = "Mozilla/5.0" }
+                        Method = "POST",
+                        Headers = {
+                            ["Content-Type"] = "application/x-www-form-urlencoded",
+                            ["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+                        },
+                        Body = bodyData
                     })
                 end)
                 if reqSuccess and reqRes and reqRes.Body then
@@ -143,7 +147,10 @@ task.spawn(function()
             end
 
             if not success then
-                local getSuccess, getRes = pcall(function() return game:HttpGet(url) end)
+                local getUrl = string.format("https://keyauth.win/api/1.2/?name=%s&ownerid=%s&secret=%s&type=license&key=%s&hwid=%s",
+                    KeyAuthConfig.name, KeyAuthConfig.ownerid, KeyAuthConfig.secret, inputKey, hwid
+                )
+                local getSuccess, getRes = pcall(function() return game:HttpGet(getUrl) end)
                 if getSuccess then
                     success = true
                     responseBody = getRes
@@ -151,6 +158,13 @@ task.spawn(function()
             end
 
             if success and responseBody then
+                -- Comprobación por si Cloudflare devuelve HTML
+                if string.find(responseBody, "<html") or string.find(responseBody, "Just a moment") then
+                    StatusLabel.Text = "Bloqueado por Cloudflare (Prueba otro ejecutor)"
+                    StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
+                    return
+                end
+
                 local decodeSuccess, data = pcall(function() return HttpService:JSONDecode(responseBody) end)
                 if decodeSuccess and data then
                     if data.success then
@@ -164,7 +178,7 @@ task.spawn(function()
                         StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
                     end
                 else
-                    StatusLabel.Text = "Error al procesar respuesta"
+                    StatusLabel.Text = "Error al procesar respuesta JSON"
                     StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
                 end
             else
