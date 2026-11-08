@@ -511,5 +511,3 @@ tbl6.RLGLBox:Button({
 		end
 	end,
 })
-
--- Fin del script empaquetado completo con éxito.
