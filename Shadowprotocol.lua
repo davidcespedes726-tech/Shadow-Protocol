@@ -79,15 +79,15 @@ task.spawn(function()
 
     local function LoadMainScript()
         local success, Fluent = pcall(function()
-            return loadstring(game:HttpGet("https://raw.githubusercontent.com/davidcespedes726-tech/Shadow-Protocol/refs/heads/main/script.lua"))()
+            return loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
         end)
         
         if success and Fluent then
             local Window = Fluent:CreateWindow({
                 Title = "Shadow Protocol",
                 SubTitle = "by David Cespedes",
-                TabWidth = 140,
-                Size = UDim2.fromOffset(500, 380),
+                TabWidth = 120,
+                Size = UDim2.fromOffset(450, 300), -- Tamaño reducido y compacto
                 Acrylic = false,
                 Theme = "Dark"
             })
@@ -102,7 +102,6 @@ task.spawn(function()
                 Content = "¡Autenticación correcta! Shadow Protocol activo y operativo."
             })
 
-            -- Forzar la selección inmediata de la pestaña Main
             Window:SelectTab(Tabs.Main)
         end
     end
