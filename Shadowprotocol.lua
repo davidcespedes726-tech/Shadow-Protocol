@@ -1,14 +1,15 @@
 task.spawn(function()
-    local Players = game:GetService("Players")
+    local CoreGui = cloneref(game:GetService("CoreGui"))
+    local Players = cloneref(game:GetService("Players"))
     local LocalPlayer = Players.LocalPlayer
-    local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
-    -- Interfaz Gráfica Limpia y Directa
     local KeyGui = Instance.new("ScreenGui")
     KeyGui.Name = "ShadowProtocolKeySystem"
     KeyGui.ResetOnSpawn = false
     KeyGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    KeyGui.Parent = PlayerGui
+
+    pcall(function() KeyGui.Parent = CoreGui end)
+    if not KeyGui.Parent then KeyGui.Parent = LocalPlayer:WaitForChild("PlayerGui") end
 
     local MainKeyFrame = Instance.new("Frame")
     MainKeyFrame.Name = "MainKeyFrame"
@@ -77,6 +78,7 @@ task.spawn(function()
     StatusLabel.Parent = MainKeyFrame
 
     local function LoadMainScript()
+        print("[Shadow Protocol] Cargando menú principal...")
         local success, Fluent = pcall(function()
             return loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
         end)
@@ -98,12 +100,12 @@ task.spawn(function()
 
             Tabs.Main:AddParagraph({
                 Title = "Estado",
-                Content = "¡Autenticación correcta! Shadow Protocol cargado con éxito."
+                Content = "¡Autenticación correcta! Shadow Protocol activo y operativo."
             })
 
             Window:SelectTab(1)
         else
-            StatusLabel.Text = "Error al cargar la librería Fluent"
+            StatusLabel.Text = "Error al cargar Fluent"
             StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
         end
     end
@@ -122,15 +124,15 @@ task.spawn(function()
 
         task.spawn(function()
             task.wait(0.5)
-            -- Validación local inmediata para saltar el bloqueo de red de los ejecutores
+            -- Bypass local seguro para evitar bloqueos del entorno de red de Roblox
             if string.len(inputKey) > 3 then
                 StatusLabel.Text = "¡Acceso concedido!"
                 StatusLabel.TextColor3 = Color3.fromRGB(50, 255, 50)
-                task.wait(1)
+                task.wait(0.8)
                 KeyGui:Destroy()
                 LoadMainScript()
             else
-                StatusLabel.Text = "Key demasiado corta"
+                StatusLabel.Text = "Key inválida"
                 StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
             end
         end)
