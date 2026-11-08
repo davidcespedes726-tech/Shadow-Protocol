@@ -2401,3 +2401,32 @@ Fluent:Notify({
 print("Shadow protocol Loaded!")
 
 end)
+
+-- ============================================================
+-- ========== ELIMINAR EFECTO DE DESENFOQUE (BLUR) ===========
+-- ============================================================
+task.spawn(function()
+    local Lighting = game:GetService("Lighting")
+    local Camera = workspace.CurrentCamera
+
+    local function clearBlur()
+        for _, v in pairs(Lighting:GetChildren()) do
+            if v:IsA("BlurEffect") or v:IsA("DepthOfFieldEffect") then
+                v:Destroy()
+            end
+        end
+        if Camera then
+            for _, v in pairs(Camera:GetChildren()) do
+                if v:IsA("BlurEffect") or v:IsA("DepthOfFieldEffect") then
+                    v:Destroy()
+                end
+            end
+        end
+    end
+
+    clearBlur()
+    Lighting.ChildAdded:Connect(clearBlur)
+    if Camera then
+        Camera.ChildAdded:Connect(clearBlur)
+    end
+end)
