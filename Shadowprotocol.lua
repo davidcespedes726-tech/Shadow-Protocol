@@ -87,22 +87,22 @@ task.spawn(function()
                 Title = "Shadow Protocol",
                 SubTitle = "by David Cespedes",
                 TabWidth = 120,
-                Size = UDim2.fromOffset(450, 300), -- Tamaño reducido y compacto
+                Size = UDim2.fromOffset(480, 340),
                 Acrylic = false,
                 Theme = "Dark"
             })
 
-            local Tabs = {
-                Main = Window:AddTab({ Title = "Main", Icon = "rbxassetid://4483345998" }),
-                Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
-            }
+            -- Creamos primero la pestaña Main para que sea la predeterminada por índice
+            local MainTab = Window:AddTab({ Title = "Main", Icon = "rbxassetid://4483345998" })
+            local SettingsTab = Window:AddTab({ Title = "Settings", Icon = "settings" })
 
-            Tabs.Main:AddParagraph({
+            MainTab:AddParagraph({
                 Title = "Estado del Sistema",
                 Content = "¡Autenticación correcta! Shadow Protocol activo y operativo."
             })
 
-            Window:SelectTab(Tabs.Main)
+            -- Selecciona explícitamente Main al abrir
+            Window:SelectTab(1)
         end
     end
 
