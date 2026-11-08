@@ -1,9 +1,19 @@
 task.spawn(function()
+    local KeyAuthConfig = {
+        name = "Shadow Protocol",
+        ownerid = "6E3KP1k829",
+        secret = "f38d03463f7ec6581704a2b14ad8896638014e2a7ed013ad9c313df04ec"
+    }
+
+    local HttpService = game:GetService("HttpService")
+    local RbxAnalyticsService = game:GetService("RbxAnalyticsService")
     local CoreGui = cloneref(game:GetService("CoreGui"))
     local Players = cloneref(game:GetService("Players"))
     local LocalPlayer = Players.LocalPlayer
 
-    -- Sistema de Autenticación Local
+    local httpRequest = (syn and syn.request) or (http and http.request) or http_request or request
+
+    -- Interfaz Gráfica del Key System
     local KeyGui = Instance.new("ScreenGui")
     KeyGui.Name = "ShadowProtocolKeySystem"
     KeyGui.ResetOnSpawn = false
@@ -41,7 +51,7 @@ task.spawn(function()
     KeyInputText.Position = UDim2.new(0.075, 0, 0.28, 0)
     KeyInputText.BackgroundColor3 = Color3.fromRGB(30, 30, 38)
     KeyInputText.Text = ""
-    KeyInputText.PlaceholderText = "Ingresa tu Key aquí..."
+    KeyInputText.PlaceholderText = "Ingresa tu Key de KeyAuth aquí..."
     KeyInputText.TextColor3 = Color3.fromRGB(255, 255, 255)
     KeyInputText.PlaceholderColor3 = Color3.fromRGB(150, 150, 150)
     KeyInputText.TextSize = 14
@@ -72,7 +82,7 @@ task.spawn(function()
     StatusLabel.Size = UDim2.new(1, 0, 0, 30)
     StatusLabel.Position = UDim2.new(0, 0, 0.78, 0)
     StatusLabel.BackgroundTransparency = 1
-    StatusLabel.Text = "Sistema Local Activo"
+    StatusLabel.Text = "HWID Lock Activado"
     StatusLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
     StatusLabel.TextSize = 12
     StatusLabel.Font = Enum.Font.Gotham
@@ -84,7 +94,7 @@ task.spawn(function()
         end)
         
         if success and Fluent then
-            -- Creación de la ventana principal idéntica a tu diseño original
+            -- Creación de la ventana principal con el panel original completo
             local Window = Fluent:CreateWindow({
                 Title = "Shadow Protocol",
                 SubTitle = "Paid Version",
@@ -94,7 +104,7 @@ task.spawn(function()
                 Theme = "Dark"
             })
 
-            -- Pestañas completas originales
+            -- Todas tus pestañas originales intactas
             local Tabs = {
                 Autoparry = Window:AddTab({ Title = "Autoparry", Icon = "sword" }),
                 Spam = Window:AddTab({ Title = "Spam", Icon = "message-square" }),
@@ -104,7 +114,7 @@ task.spawn(function()
                 Settings = Window:AddTab({ Title = "Settings", Icon = "sliders" })
             }
 
-            -- Opciones de Autoparry idénticas a tu imagen
+            -- Opciones de Autoparry originales
             Tabs.Autoparry:AddParagraph({
                 Title = "Auto Parry",
                 Content = "Auto Parry\nAutomatically parries ball"
@@ -132,26 +142,79 @@ task.spawn(function()
                 Default = false
             })
 
-            -- Seleccionar la pestaña Autoparry por defecto
             Window:SelectTab(1)
         end
     end
 
     VerifyButton.MouseButton1Click:Connect(function()
         local inputKey = string.gsub(KeyInputText.Text, "%s+", "")
-        
         if inputKey == "" then
             StatusLabel.Text = "Por favor ingresa una llave"
             StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
             return
         end
 
-        StatusLabel.Text = "¡Acceso concedido!"
-        StatusLabel.TextColor3 = Color3.fromRGB(50, 255, 50)
-        
-        task.delay(0.5, function()
-            KeyGui:Destroy()
-            LoadMainScript()
+        StatusLabel.Text = "Verificando Key y HWID..."
+        StatusLabel.TextColor3 = Color3.fromRGB(255, 255, 100)
+
+        task.spawn(function()
+            local hwid = "unknown"
+            pcall(function() hwid = RbxAnalyticsService:GetClientId() end)
+
+            -- Validación directa con KeyAuth (keyauth.cc)
+            local url = string.format(
+                "https://keyauth.cc/api/1.2/?name=%s&ownerid=%s&secret=%s&type=license&key=%s&hwid=%s",
+                HttpService:UrlEncode(KeyAuthConfig.name),
+                HttpService:UrlEncode(KeyAuthConfig.ownerid),
+                HttpService:UrlEncode(KeyAuthConfig.secret),
+                HttpService:UrlEncode(inputKey),
+                HttpService:UrlEncode(hwid)
+            )
+
+            local success, responseBody = false, nil
+            if httpRequest then
+                local reqSuccess, reqRes = pcall(function()
+                    return httpRequest({
+                        Url = url,
+                        Method = "GET",
+                        Headers = { ["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" }
+                    })
+                end)
+                if reqSuccess and reqRes and reqRes.Body then
+                    success = true
+                    responseBody = reqRes.Body
+                end
+            end
+
+            if not success or not responseBody then
+                local getSuccess, getRes = pcall(function() return game:HttpGet(url) end)
+                if getSuccess then
+                    success = true
+                    responseBody = getRes
+                end
+            end
+
+            if success and responseBody then
+                local decodeSuccess, data = pcall(function() return HttpService:JSONDecode(responseBody) end)
+                if decodeSuccess and type(data) == "table" then
+                    if data.success == true then
+                        StatusLabel.Text = "¡Acceso concedido!"
+                        StatusLabel.TextColor3 = Color3.fromRGB(50, 255, 50)
+                        task.wait(1)
+                        KeyGui:Destroy()
+                        LoadMainScript()
+                    else
+                        StatusLabel.Text = data.message or "Key inválida o HWID no coincide"
+                        StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
+                    end
+                else
+                    StatusLabel.Text = "Error al procesar respuesta"
+                    StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
+                end
+            else
+                StatusLabel.Text = "Error de conexión con KeyAuth"
+                StatusLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
+            end
         end)
     end)
 end)
