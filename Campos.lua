@@ -16,7 +16,7 @@ local CONFIG = {
     DiscordInvite = "https://discord.gg/2p59z7pHYk",
     DiscordWebhook = "", 
     
-    -- Configuración oficial de KeyAuth proporcionada
+    -- Configuración oficial de KeyAuth
     KeyAuth = {
         Name = "Shadow Protocol",
         OwnerId = "8EJKP3XB29",
@@ -40,7 +40,7 @@ local CONFIG = {
     }
 }
 
--- Limpieza de efectos de ambiente para no interferir
+-- Limpieza de efectos de ambiente
 for _, effect in ipairs(Lighting:GetChildren()) do
     if (effect:IsA("BlurEffect") or effect:IsA("DepthOfFieldEffect")) and not effect.Name:lower():find("aim") then
         effect.Enabled = false
@@ -75,15 +75,10 @@ local function playSound(soundId)
     sound.Ended:Connect(function() sound:Destroy() end)
 end
 
-local function copyClipboard(text)
-    local clipFunc = rawget(getfenv(), "setclipboard") or rawget(getfenv(), "toclipboard") or (typeof(getgenv) == "function" and (getgenv().setclipboard or getgenv().toclipboard))
-    if typeof(clipFunc) == "function" then clipFunc(text) end
-end
-
 -- ---------------- [[ KEYAUTH VALIDATION FUNCTION ]] ----------------
 local function validateKeyAuth(userKey)
     local url = string.format(
-        "https://keyauth.win/api/1.2/?name=%s&ownerid=%s&type=license&key=%s&ver=%s",
+        "https://keyauth.cc/api/1.2/?name=%s&ownerid=%s&type=license&key=%s&ver=%s",
         CONFIG.KeyAuth.Name,
         CONFIG.KeyAuth.OwnerId,
         userKey,
@@ -109,7 +104,7 @@ local function validateKeyAuth(userKey)
     return false
 end
 
--- ---------------- [[ PASARSE AL SISTEMA DE LICENCIA (KEY SYSTEM) ]] ----------------
+-- ---------------- [[ INTERFAZ DEL KEY SYSTEM ]] ----------------
 local KeyModal = Instance.new("Frame")
 KeyModal.Size = UDim2.new(0, 360, 0, 220)
 KeyModal.Position = UDim2.new(0.5, 0, 0.5, 0)
@@ -174,7 +169,7 @@ VerifyCorner.CornerRadius = UDim.new(0, 6)
 VerifyCorner.Parent = VerifyBtn
 
 local function initMainHub()
-    -- Carga de notificaciones de éxito al inyectar
+    -- Notificación oficial de inyección exitosa con el nombre Shadow Protocol
     pcall(function()
         game:GetService("StarterGui"):SetCore("SendNotification", {
             Title = "Shadow Protocol",
@@ -182,8 +177,6 @@ local function initMainHub()
             Duration = 5,
         })
     end)
-    
-    -- Aquí continúa la inicialización de la interfaz principal del Hub si es requerida
 end
 
 VerifyBtn.MouseButton1Click:Connect(function()
