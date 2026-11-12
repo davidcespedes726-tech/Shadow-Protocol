@@ -163,7 +163,8 @@ local function createKeyUI(callback)
 	frame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
 	frame.BorderSizePixel = 0
 	frame.Position = UDim2.fromScale(0.5, 0.5)
-	frame.Size = UDim2.fromOffset(320, 160)
+	-- Se ajusta ligeramente el ancho para que el texto largo encaje de forma cómoda
+	frame.Size = UDim2.fromOffset(360, 160)
 
 	local frameCorner = Instance.new("UICorner")
 	frameCorner.CornerRadius = UDim.new(0, 8)
@@ -191,7 +192,7 @@ local function createKeyUI(callback)
 	title.Size = UDim2.new(1, -40, 0, 18)
 	title.Text = "Shadow Protocol paid version"
 	title.TextColor3 = Color3.fromRGB(230, 230, 250)
-	title.TextSize = 16
+	title.TextSize = 15 -- Ajustado ligeramente para mantener proporción
 	title.TextXAlignment = Enum.TextXAlignment.Left
 	title.Parent = frame
 
@@ -354,7 +355,7 @@ end
 
 local function executeSource(result)
 	local fn, loadErr = loadstring(result.source)
-	if fn then fn() else warn("[Shadow Protocol] Script load error:", loadErr) end
+	if fn then fn() else warn("[Shadow Protocol Paid] Script load error:", loadErr) end
 end
 
 local cachedKey = readCachedKey()
@@ -366,7 +367,7 @@ if cachedKey then
 		return
 	end
 	if result and result.maintenance then
-		warn("[Shadow Protocol] " .. (result.message or "Script is under maintenance"))
+		warn("[Shadow Protocol Paid] " .. (result.message or "Script is under maintenance"))
 		return
 	end
 	if result and result.valid == false then
