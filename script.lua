@@ -95,7 +95,7 @@ BtnCorner.Parent = Button
 local verified = false
 
 Button.MouseButton1Click:Connect(function()
-    if TextBox.Text == "MushuGa" then
+    if TextBox.Text == "DemoniosViejo" then
         verified = true
         KeyGui:Destroy()
     else
